@@ -26,9 +26,9 @@ void showSpectrum()
 {
   int x;
 
-  for (x = 0; x < 768; x++)
+  for (x = 0; x <= 768; x++)
   {
-    // Change the direction
+    // Reverse the direction from the original. This will go from 768 to 0.
     showRGB(768 - x);
     delay(10);
   }
@@ -36,6 +36,7 @@ void showSpectrum()
 }
 
 
+// The original showRGB function:
 void showRGB(int color)
 {
   int redIntensity;

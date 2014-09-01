@@ -13,14 +13,17 @@ void setup()
 void loop()
 {
 
+  // Set the led to maximum brightness.
   digitalWrite(ledPin, HIGH);
 
-  // Time to delay between every change in brightness
+  // Calculate the time to delay between every change in brightness
   // to make the fading last 4 seconds.
-  float step_delay = 4000 / MAX_BRIGHTNESS;
+  int step_delay = 4000 / MAX_BRIGHTNESS;
 
   for(int i=0; i<=MAX_BRIGHTNESS; i++)
   {
+    // Lower the brightness by one each time through the loop. Starting at
+    // maximum brightness and ending at 0.
     analogWrite(ledPin, MAX_BRIGHTNESS-i);
     delay(step_delay);
   }

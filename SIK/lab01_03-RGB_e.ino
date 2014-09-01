@@ -28,22 +28,25 @@ void mainColorsForLoop()
 
   delay(1000);
 
-  // Red, Green and Blue
+  // Red(0), Green(256) and Blue(512)
   for(int i=0; i<3; i++)
   {
     showRGB(i*256);
     delay(1000);
   }
 
-  // Yellow, Cyan and Purple
-  for(int i=1; i<=5; i+=2)
+  // Yellow(128), Cyan(384) and Purple(640)
+  // These colors should be the same as in the original mainColors() function,
+  // only with half the brightness because of limitations of the showRGB
+  // function.
+  for(int i=0; i<3; i++)
   {
-    showRGB(i*128);
+    showRGB(128 + i*256);
     delay(1000);
   }
 
 
-  // White
+  // All LEDs on (White)
   digitalWrite(RED_PIN, HIGH);
   digitalWrite(GREEN_PIN, HIGH);
   digitalWrite(BLUE_PIN, HIGH);
@@ -52,6 +55,7 @@ void mainColorsForLoop()
 }
 
 
+// The original showRGB function:
 void showRGB(int color)
 {
   int redIntensity;

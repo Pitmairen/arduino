@@ -13,11 +13,12 @@ void setup()
 void loop()
 {
 
-
+  // Set the LED to 20% of maximum brightness.
   analogWrite(ledPin, 0.20 * MAX_BRIGHTNESS);
 
   delay(1000);
 
+  // Turn it off.
   digitalWrite(ledPin, 0);
 
   delay(1000);
