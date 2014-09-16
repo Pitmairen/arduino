@@ -5,6 +5,8 @@ const int POT_PIN = A0;
 
 void setup()
 {
+  // Loop through all the pins and set them to
+  // OUTPUT mode
   for(int index = 0; index <= 7; index++)
   {
     pinMode(ledPins[index],OUTPUT);
@@ -19,6 +21,9 @@ void loop()
 
   int potValue = analogRead(POT_PIN);
 
+  // Divide the value from the POT by 170 and use the result to choose
+  // which animation to run. Use constrain to remove the trim off the 6 which
+  // we get when the potValue is close to 1023.
   switch(constrain(potValue/170, 0, 5))
   {
     case 0:
@@ -44,6 +49,9 @@ void loop()
 }
 
 
+// Turn on and off one LED at a time from both sides, when it reaches the middle
+// stop and blink the two middle LEDS before continuing turning on and off one LED
+// at the time until reaching the end.
 void myCoolAnimation()
 {
   for(int i=0; i < LED_COUNT; i++)

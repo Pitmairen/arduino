@@ -22,6 +22,9 @@ void loop()
 
 
 
+// Turn on and off one LED at a time from both sides, when it reaches the middle
+// stop and blink the two middle LEDS before continuing turning on and off one LED
+// at the time until reaching the end.
 void myCoolAnimation()
 {
   for(int i=0; i < LED_COUNT; i++)

@@ -43,7 +43,7 @@ void autoTune()
 
   // Dynamically change the padding of the high and low values.
   // This is done because if we use a static padding like in the
-  // original code, and the difference between the high and low is less than
+  // original code, and the difference between high and low is less than
   // twice the padding, the "fromLow" argument of the map function will
   // be bigger than the "fromHigh" arguments and we get weird results until the
   // difference between high and low get large enough.
@@ -54,7 +54,8 @@ void autoTune()
 
   // Swap the direction of the toLow and toHigh arguments to reverse the
   // direction of the lightLevel. It will now light up when the lightLevel is
-  // low.
+  // low. The padding is used to prevent the LED from flickering when the
+  // lightLevel is close to the low and high limits.
   lightLevel = map(lightLevel, low+padding, high-padding, 255, 0);
 
 
