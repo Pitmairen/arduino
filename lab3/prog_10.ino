@@ -3,7 +3,7 @@
 // Include the servo library
 #include <Servo.h>
 
-// The pins used int the code
+// The pins used in the code
 const int flexPin = A0;
 const int servoPin = 9;
 
@@ -70,7 +70,8 @@ void loop() {
   int servoPosition = map(flexValue, 770L*servoSmoothing, 900L*servoSmoothing,
                           servoMinPosition, servoMaxPosition);
 
-  // Constrain the position to the min and max position.
+  // Constrain the position to the min and max position, just in case we get
+  // some spikes in the reading from the sensor.
   servoPosition = constrain(servoPosition, servoMinPosition, servoMaxPosition);
 
   // Set the servo position
