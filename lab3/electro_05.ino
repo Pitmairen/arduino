@@ -23,36 +23,26 @@ void setup() {
 }
 
 
+
 void loop() {
 
   float potVoltage = readVoltage(potPin);
 
+  // Turn all the leds off to make sure only one led is on at a time.
+  allLedsOff();
 
-  // If the voltage is very low w just turn off all the LEDs.
-  if(potVoltage < 0.1){
-    allLedsOff();
+  // Turn on the red led if the voltage is over the limit.
+  if(potVoltage > alertLimit){
+    ledOn(alertPin);
   }
-  else{
+  // If the voltage is below 0.1 we do nothing.
+  else if (potVoltage > 0.1) {
 
-    // If the voltage is above 0.1 we turn on one LED every time the voltage
-    // increases by 1V.
-
-    for(int i=0; i <= ledCount; i++){
-
-      // If the LED pin index is below or equal to the integer value
-      // of the current voltage we turn it on. If not we turn it off.
-      if(i <= int(potVoltage))
-        ledOn(ledPins[i]);
-      else
-        ledOff(ledPins[i]);
-    }
-
-    // If the voltage is above the limit we make sure the alert LED is on.
-    // This is needed because the above loop will not turn the red LED on
-    // until the voltage is at 5.0V or above.
-    if(potVoltage > alertLimit){
-       ledOn(alertPin);
-    }
+    // Convert the potVoltage into an integer and use that to select the
+    // correct ledpin. When the voltage is between
+    // 0-1 this will select index 0, when it is between 1-2 it will
+    // select index 1, and so on.
+    ledOn(ledPins[int(potVoltage)]);
   }
 
   Serial.print("Potmeter Voltage: ");
@@ -69,18 +59,11 @@ void ledOn(int pin)
    digitalWrite(pin, HIGH);
 }
 
-// Turn off the specified LED
-void ledOff(int pin)
-{
-   digitalWrite(pin, LOW);
-}
-
-
 // Turn off all the LEDS
 void allLedsOff()
 {
    for(int i=0; i<ledCount; ++i){
-      ledOff(ledPins[i]);
+      digitalWrite(ledPins[i], LOW);
    }
 }
 
