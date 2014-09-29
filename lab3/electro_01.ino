@@ -1,27 +1,48 @@
 
-const int diodeOutPin = 10;
+const int outVoltagePin = A0;
+const int diodeVoltagePin = A1;
+
+// The resistans of the series resistor in kOhm
+const float seriesResistor = 0.236;
 
 
 void setup() {
 
-  pinMode(diodeOutPin, OUTPUT);
+  // Setup serial connection
+  Serial.begin(9600);
 
 }
 
 
 void loop() {
 
-  // Increase the voltage on the diode circuit from 0 to 5V with
-  // 0.5 V increments.
-  for(int i=0; i<=10; ++i){
+  float outVoltage = readVoltage(outVoltagePin);
+  float diodeVoltage = readVoltage(diodeVoltagePin);
 
-    // Increase the voltage by 0.5 for every iteration of the loop
-    analogWrite(diodeOutPin, 255 * (i*0.5/5.0));
+  float current = calculateCurrent(outVoltage - diodeVoltage, seriesResistor);
 
-    // Delay to get time to measure the circuit with a multimeter
-    delay(10000);
-  }
+  Serial.print("Current: ");
+  Serial.print(current);
+  Serial.print(" - Voltage: ");
+  Serial.println(diodeVoltage);
 
+
+  delay(1000);
 }
+
+
+// Calculate current from voltagedrop and resistance
+float calculateCurrent(float voltageDrop, float resistance)
+{
+  return voltageDrop / resistance;
+}
+
+float readVoltage(int pin)
+{
+  // Convert the value from analogRead into the real voltage.
+  return analogRead(pin) * (5.0/1023.0);
+}
+
+
 
 
