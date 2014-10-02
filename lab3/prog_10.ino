@@ -9,7 +9,7 @@ const int servoPin = 9;
 
 
 // The minimal and maximal position of the servo.
-// I use 15 as the minimum position becase if the value is lower
+// I use 15 as the minimum position because if the value is lower than 15
 // the servo starts to make a weird noice.
 const int servoMinPosition = 15;
 const int servoMaxPosition = 180;

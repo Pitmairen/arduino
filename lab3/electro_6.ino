@@ -28,13 +28,13 @@ void loop() {
   float potVoltage = readVoltage(potPin);
 
 
-  // If the voltage is very low w just turn off all the LEDs.
+  // If the voltage is very low we just turn off all the LEDs.
   if(potVoltage < 0.1){
     allLedsOff();
   }
   else{
 
-    // If the voltage is above 0.1 we turn on one LED every time the voltage
+    // If the voltage is 0.1 or above we turn on one LED every time the voltage
     // increases by 1V.
 
     for(int i=0; i <= ledCount; i++){
