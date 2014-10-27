@@ -7,10 +7,6 @@ const int BUTTON_PIN_2 = 8;
 const int LED_PIN = 10;
 const int TEMP_SENSOR_PIN = A0;
 
-// States for the current button state
-const int BUTTONS_IDLE = 0;
-const int BUTTON_1_PRESSED = 1;
-const int BUTTON_2_PRESSED = 2;
 
 // constant for the degrees symbol. The value of byte(0) is chosen
 // based on the documentation for the lcd library. 0 Means the first
@@ -23,18 +19,17 @@ const byte DEGREES_SYMBOL = byte(0);
 const int TEMP_UPDATE_TIMER = 0; // Timer for the temperature update interval
 const int BUTTONS_TIMER = 1; // Timer for autorepeat
 
+
+
 // Array used to store the timerValues.
 unsigned long timers[2]; // The size must be the same as the number of timers
 
 // Temperature limit before the alert LED should
-// be turned on in degrees Celcius
+// be turned on in degrees Celsius
 float alertLimit = 20.0;
 
-// The current temperature read from the sensor in degrees Celcius
+// The current temperature read from the sensor in degrees Celsius
 float degreesC = 0.0;
-
-// The state of the buttons
-int buttonState = BUTTONS_IDLE;
 
 // Delay before the alertLimit should be automatically incremented or
 // decremented when the buttons are pushed and hold down longer than this limit.
@@ -75,7 +70,7 @@ void setup() {
 
   // Update the display with initial values
   updateDisplayLimit(alertLimit);
-  updateDisplayTemperature(readCelcius(TEMP_SENSOR_PIN));
+  updateDisplayTemperature(updateCurrentTemperature(TEMP_SENSOR_PIN));
 }
 
 
@@ -85,48 +80,28 @@ void loop() {
   // the value from constantly fluctuating
   if(timerHasPassed(TEMP_UPDATE_TIMER, 2000)){
 
-    float degreesC = readCelcius(TEMP_SENSOR_PIN);
-
-    if(degreesC > alertLimit){
-      digitalWrite(LED_PIN, HIGH);
-    }
-    else{
-      digitalWrite(LED_PIN, LOW);
-    }
-
+    updateCurrentTemperature(TEMP_SENSOR_PIN);
     updateDisplayTemperature(degreesC);
+    updateAlertLed(degreesC, alertLimit);
     resetTimer(TEMP_UPDATE_TIMER);
-
 
   }
 
 
-  if(isButtonPressed(BUTTON_PIN_1) || isButtonPressed(BUTTON_PIN_2))
+  // Check if one of the buttons are pushed, but not both at the same time.
+  if((isButtonPressed(BUTTON_PIN_1) || isButtonPressed(BUTTON_PIN_2)) &&
+     !(isButtonPressed(BUTTON_PIN_1) && isButtonPressed(BUTTON_PIN_2)))
   {
-    // One of the buttons are now pushed down.
-
-    // If previously no button was pushed
-    if(buttonStateIs(BUTTONS_IDLE)){
-
-      resetTimer(BUTTONS_TIMER);
-      resetAutoRepeat();
-
-      // Set which button is being pushed
-      if(isButtonPressed(BUTTON_PIN_1))
-        setButtonState(BUTTON_1_PRESSED);
-      else
-        setButtonState(BUTTON_2_PRESSED);
-
-    }
+    // Only one of the buttons are now pushed down.
 
     // If 20 ms has passed since the button was pushed and autorepeat has not
     // been set, we register a single push on the current button.
     // A delay of 20 ms is used to prevent accidental triggering of the
     // buttons.
-    else if(timerHasPassed(BUTTONS_TIMER, 20) && !isAutoRepeatActivated()){
+    if(timerHasPassed(BUTTONS_TIMER, 20) && !isAutoRepeatActivated()){
 
        // increment or decrement depending on the button pushed.
-       if(buttonStateIs(BUTTON_1_PRESSED)){
+       if(isButtonPressed(BUTTON_PIN_1)){
          incrementAlarmLimit();
        }else{
          decrementAlarmLimit();
@@ -141,7 +116,7 @@ void loop() {
 
        // If autorepeat is activated and the autoRepeat delay has passed
        // we automatically increment or decrement the alart limit.
-       if(buttonStateIs(BUTTON_1_PRESSED)){
+       if(isButtonPressed(BUTTON_PIN_1)){
          incrementAlarmLimit();
        }else{
          decrementAlarmLimit();
@@ -155,13 +130,17 @@ void loop() {
 
 
     updateDisplayLimit(alertLimit);
+    updateAlertLed(degreesC, alertLimit);
 
   }
   else{
 
-    // If no buttons are pushed the button state is IDLE
-    setButtonState(BUTTONS_IDLE);
+    // If no buttons are pushed reset the timer and autorepeat to
+    // be ready for the next button push.
+    resetAutoRepeat();
+    resetTimer(BUTTONS_TIMER);
   }
+
 
 }
 
@@ -169,25 +148,35 @@ void loop() {
 /*
  Updates the temperature in the lcd display
 */
-void updateDisplayTemperature(float degreesC)
+void updateDisplayTemperature(float degC)
 {
 
-  // Print the current temperature in celcius in the upper
+  // Print the current temperature in celsius in the upper
   // right corner of the screen
-  lcd.setCursor(calculateCursorPosition(degreesC)-3, 0);
-  lcd.print("T: ");
-  lcd.print(degreesC,1);
+  // -4 is for the " T: " before the temperature.
+  lcd.setCursor(calculateCursorPosition(degC)-4, 0);
+  // The space preceding the T is used to remove the letter that will be left
+  // if the number of digits in the temperature decreases by one.
+  lcd.print(" T: ");
+  lcd.print(degC,1);
   lcd.write(DEGREES_SYMBOL);
   lcd.print("C");
 
   // Print the current temperature in farenheit in the lower
   // right corner of the screen.
-  float degreesF = convertToFarenheit(degreesC);
-  lcd.setCursor(calculateCursorPosition(degreesF), 1);
+  float degreesF = convertToFarenheit(degC);
+  lcd.setCursor(calculateCursorPosition(degreesF)-1, 1);
+  // The space is used to remove the any characters that will be left
+  // if the number of digits in the temperature decreases by one.
+  lcd.print(" ");
   lcd.print(degreesF, 1);
   lcd.write(DEGREES_SYMBOL);
   lcd.print("F");
 
+  // Even if i try to prevent ghost characters being left when the number
+  // of digits in the temperature changes it can still happen if the number of
+  // digits changes by more than one digit between two updates. But this should
+  // never happen in normal conditions.
 }
 
 
@@ -208,10 +197,40 @@ void updateDisplayLimit(float limit)
 }
 
 
+/*
+ Reads the current temperature from the sensor at pin
+ and updates the global variable degreesC
+*/
+float updateCurrentTemperature(int pin)
+{
+  degreesC = readCelsius(pin);
+  degreesC = constrain(degreesC, -273, 999);
+  return degreesC;
+}
+
+
+
+/*
+  Turns on or off the alert led depending the current temp and the alert limit.
+*/
+void updateAlertLed(float currentTempC, float alertLimit)
+{
+  if(currentTempC > alertLimit){
+    digitalWrite(LED_PIN, HIGH);
+  }
+  else{
+    digitalWrite(LED_PIN, LOW);
+  }
+}
+
+
 
 /*
   Calculates the starting column for the cursor to
   make the number with the unit fit on the right side of the display.
+
+  Basicly it calculates the number of digits in the number + two for the unit
+  and subtracts this number from the total number og columns in the lcd display.
 
   24'C => (total cols on lcd) - (cols needed for number + unit) = 16 - 4 = 10;
 */
@@ -274,22 +293,6 @@ void setAutoRepeat(int delay)
 
 
 /*
-  Sets the current button state
-*/
-void setButtonState(int state)
-{
-  buttonState = state;
-}
-
-/*
-  Checks if the current button is equal to "state"
-*/
-boolean buttonStateIs(int state)
-{
-  return buttonState == state;
-}
-
-/*
   Checks if a button in pushed
 */
 boolean isButtonPressed(int pin)
@@ -310,15 +313,13 @@ float getVoltage(int pin)
   Reads the current temperatur from a sensor and returns the
   value in calcius
 */
-float readCelcius(int pin)
+float readCelsius(int pin)
 {
-
-  float degreesC = (getVoltage(pin) - 0.5) * 100.0;
-  return constrain(degreesC, -273, 999);
+  return (getVoltage(pin) - 0.5) * 100.0;
 }
 
 /*
-  Converts from degrees Celcius to Farenheit
+  Converts from degrees Celsius to Farenheit
 */
 float convertToFarenheit(float degreesC)
 {
